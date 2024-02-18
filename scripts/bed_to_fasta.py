@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import argparse
+import pybedtools
+from pybedtools import BedTool
+import os
+
+REFERENCE_GENOME = "/home/bubu23/hg38.fa"        # add path here
+
+def extract_sequences_from_bed(bed_file, output_file):
+    bed_file = BedTool(bed_file)
+    hg_fasta = BedTool(REFERENCE_GENOME)
+    sequences = bed_file.sequence(fi=hg_fasta, nameOnly=True)
+    sequences.save_seqs(output_file)
+
+    # Print the number of sequences in the resulting FASTA file
+    num_sequences = sum(1 for _ in open(output_file)) // 2
+    print(f"Number of sequences in {output_file}: {num_sequences}")
+
+    return sequences
+
+def main():
+    parser = argparse.ArgumentParser(description="Extract sequences from BED file using a fixed reference genome.")
+    parser.add_argument("bed_file", help="Input BED file")
+    parser.add_argument("--output_file", "-o", default="output.fa", help="Output file name (default: output.fa)")
+
+    args = parser.parse_args()
+
+    # Remove the old extension and append .fa to the input BED file name for the output file
+    input_basename = os.path.splitext(os.path.basename(args.bed_file))[0]
+    output_file = input_basename + ".fa"
+
+    extract_sequences_from_bed(args.bed_file, output_file)
+
+if __name__ == "__main__":
+    main()
