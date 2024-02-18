@@ -42,7 +42,7 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
     positive_sequences = pybedtools.BedTool(positive_bed)
 
     # Load genome reference for sequence extraction
-    genome_reference = "/home/bubu23/hg38.fa"
+    genome_reference = "/home/bubu23/hg38.fa"        # need to change path here
     genome = Fasta(genome_reference)
 
     # Initialize an empty list to store positive predicted windows

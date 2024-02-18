@@ -4,29 +4,29 @@ import os
 
 def run_pad_positives(input_pos, flank_size):
     # Run pad_positives.py with the specified input and flank size
-    command = ['python', '/home/bubu23/pad_positives.py', input_pos, '--flank_size', str(flank_size)]
+    command = ['python', 'pad_positives.py', input_pos, '--flank_size', str(flank_size)]
     subprocess.run(command)
 
 def run_bed_to_fasta(input_pos):
     # Run bed_to_fasta.py with the specified input
     output_fasta = os.path.splitext(os.path.basename(input_pos))[0] + "_adjusted.fa"
-    command = ['python', '/home/bubu23/bed_to_fasta.py', input_pos, '--output_file', output_fasta]
+    command = ['python', 'bed_to_fasta.py', input_pos, '--output_file', output_fasta]
     subprocess.run(command)
 
 def run_bedtools_script(input_pos, input_low_conf1, input_low_conf2, output_prefix):
     # Run bedtools_script.py with the specified inputs and output prefix
-    command = ['python', '/home/bubu23/bedtools_script.py', input_pos, input_low_conf1, input_low_conf2, output_prefix]
+    command = ['python', 'bedtools_script.py', input_pos, input_low_conf1, input_low_conf2, output_prefix]
     subprocess.run(command)
 
 def run_sampling_script(genes_without_pos_file, genes_without_pos, positives_file, num_samples, output_prefix, sampling_mode):
     # Run the appropriate sampling script based on the sampling mode
     if sampling_mode == 'hard':
         output_file = f"{output_prefix}_hard_negatives_output.fa"
-        command = ['python', '/home/bubu23/sampling_hardneg.py', genes_without_pos, positives_file, output_file, '--num_sequences_to_save', str(num_samples)]
+        command = ['python', 'sampling_hardneg.py', genes_without_pos, positives_file, output_file, '--num_sequences_to_save', str(num_samples)]
         subprocess.run(command)
     else:
         output_file = f"{output_prefix}_normal_negatives_output.bed"
-        command = ['python', '/home/bubu23/generate_negatives.py', genes_without_pos_file, output_file, '--num_samples', str(num_samples)]
+        command = ['python', 'generate_negatives.py', genes_without_pos_file, output_file, '--num_samples', str(num_samples)]
         subprocess.run(command)
 
 def main():
