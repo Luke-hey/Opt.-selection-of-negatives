@@ -33,10 +33,14 @@ key features
 
 ## Installation
 
-step-by-step instructions on how to install and set up your project. Include any dependencies and configuration steps.
+1. Install miniconda3 from the official website: link
+2. 
 
 ```bash
 # Example installation commands
 git clone https://github.com/yourusername/your-repository.git
 cd your-repository
 npm install
+````
+
+## Usage
