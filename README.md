@@ -33,14 +33,20 @@ key features
 
 ## Installation
 
-1. Install miniconda3 from the official website: link
-2. 
+1. **Install Miniconda:**
+   - Download and install Miniconda3 from the [official website](https://docs.anaconda.com/free/miniconda/).
 
-```bash
-# Example installation commands
-git clone https://github.com/yourusername/your-repository.git
-cd your-repository
-npm install
-````
+2. **Setup Conda Environment:**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/Luke-hey/Opt.-selection-of-negatives.git
+   
+   # Navigate to the project directory
+   cd Opt.-selection-of-negatives
+
+   # Create and activate Conda environment
+   conda create --name your_env_name python=3.8 --file requirements.txt
+   conda activate your_env_name
+
 
 ## Usage
