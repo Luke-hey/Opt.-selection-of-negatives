@@ -50,7 +50,6 @@ key features
 
 
 ## Usage
-## Usage
 
 ### 1. Reference Genome and Annotation
 
