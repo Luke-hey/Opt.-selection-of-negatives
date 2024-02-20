@@ -10,7 +10,7 @@ REFERENCE_GENOME = "/home/bubu23/hg38.fa"        # add path here
 def extract_sequences_from_bed(bed_file, output_file):
     bed_file = BedTool(bed_file)
     hg_fasta = BedTool(REFERENCE_GENOME)
-    sequences = bed_file.sequence(fi=hg_fasta, nameOnly=True)
+    sequences = bed_file.sequence(fi=hg_fasta, s=True, nameOnly=True)
     sequences.save_seqs(output_file)
 
     # Print the number of sequences in the resulting FASTA file
