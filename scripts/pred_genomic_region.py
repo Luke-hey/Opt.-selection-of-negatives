@@ -76,9 +76,6 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
 
     return positive_predictions
 
-    # Merge overlapping or adjacent regions to eliminate duplicates
-    processed_predictions = pybedtools.BedTool("positive_predictions.bed").sort().merge()
-
 
 # Function to evaluate predictions using precision, recall, and confusion matrix
 def evaluate_predictions(ground_truth_bed, predicted_bed):
