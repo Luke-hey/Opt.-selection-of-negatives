@@ -25,7 +25,7 @@ def kmer(seq, K=3):
     return kmer_string
 
 # Define the prediction function
-def pred(seq, model, tokenizer, threshold=0.96):
+def pred(seq, model, tokenizer, threshold=0.50):
     with torch.no_grad():
         model.eval()
         inputs = tokenizer(kmer(seq), return_tensors="pt").to(device)
@@ -101,74 +101,7 @@ def evaluate_predictions(ground_truth_bed, predicted_bed):
     print(f"F1 Score: {f1_score}")
 
 
-### TEST ###
-def extract_sequences_from_bed(bed_file, hg_fasta="/home/bubu23/hg38.fa"):
-    sequence_dict = {}
 
-    bed_file = pybedtools.BedTool(bed_file)
-    bed_file = bed_file.sequence(fi=hg_fasta, s=True, nameOnly=True)
-
-    for record in SeqIO.parse(str(bed_file.seqfn), "fasta"):
-        index_of_parenthesis = record.id.find("(")
-        result = record.id[:index_of_parenthesis] if index_of_parenthesis != -1 else record.id
-        sequence_dict[result] = str(record.seq)
-
-    return sequence_dict
-
-
-
-def get_gene_ranges(bed_file):
-    # Function to extract gene ranges, chromosome, and strand from a BED file using pybedtools
-    gene_info = {}
-    bed = pybedtools.BedTool(bed_file)
-
-    for interval in bed:
-        header = interval.name
-        chrom = interval.chrom
-        start = interval.start
-        end = interval.end
-        strand = interval.strand
-        gene_info[header] = {'chrom': chrom, 'start': start, 'end': end, 'strand': strand}
-
-    return gene_info
-
-
-def split_sequences_with_gene_ranges(sequences_dict, bed_file, model, tokenizer, window_size, step_size):
-    windows = []
-    gene_info = get_gene_ranges(bed_file)
-
-    # Use tqdm to create a progress bar
-    for header, sequence in tqdm(sequences_dict.items(), desc="Processing sequences", unit="sequence"):
-        if header in gene_info:
-            chrom = gene_info[header]['chrom']
-            start = gene_info[header]['start']
-            end = gene_info[header]['end']
-            strand = gene_info[header]['strand']
-
-            seq_len = len(sequence)
-
-            for i in range(0, seq_len - window_size + 1, step_size):
-                window_sequence = sequence[i : i + window_size]
-                if pred(window_sequence, model, tokenizer) == 0:
-                    continue
-                else:
-                    if strand == '+':
-                        window_start = start + i
-                        window_end = window_start + window_size
-                    elif strand == '-':
-                        window_end = end - i
-                        window_start = window_end - window_size
-
-                    window_header = f"{chrom} {window_start} {window_end} {header} 0 {strand}"
-                    windows.append((window_header, window_sequence))
-
-    return windows
-
-def create_bed_file(data, output_bed_file):
-    headers = [header for header, _ in data]
-    bed_tool = pybedtools.BedTool("\n".join(headers), from_string=True)
-    bed_tool.saveas(output_bed_file)
-### TEST ###
 
 def main():
     # Parse command line arguments
@@ -183,16 +116,11 @@ def main():
     model = AutoModelForSequenceClassification.from_pretrained(model_name, trust_remote_code=True, num_labels=2).to(device)
 
     # Perform sliding window prediction on genomic regions
-    #predicted_windows = predict_genomic_regions(args.genomic_bed, args.positive_bed, model, tokenizer)
+    predicted_windows = predict_genomic_regions(args.genomic_bed, args.positive_bed, model, tokenizer)
 
-    ### TEST ###
-    sequences = extract_sequences_from_bed(args.genomic_bed)
-    windows = split_sequences_with_gene_ranges(sequences, args.genomic_bed, model, tokenizer, window_size=101, step_size=20)
-    create_bed_file(windows, output_bed_file = "output.bed")
-    evaluate_predictions(args.positive_bed, "output.bed")
-    ### TEST ###
+
     # Evaluate predictions
-    #evaluate_predictions(args.positive_bed, "positive_predictions.bed")
+    evaluate_predictions(args.positive_bed, "positive_predictions.bed")
 
 if __name__ == "__main__":
     main()

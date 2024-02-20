@@ -21,11 +21,11 @@ def run_bedtools_script(input_pos, input_low_conf1, input_low_conf2, output_pref
 def run_sampling_script(genes_without_pos_file, genes_without_pos, positives_file, num_samples, output_prefix, sampling_mode):
     # Run the appropriate sampling script based on the sampling mode
     if sampling_mode == 'hard':
-        output_file = f"{output_prefix}_hard_negatives_output.fa"
+        output_file = f"{output_prefix}_hard_negatives_output{num_samples}.fa"
         command = ['python', 'sampling_hardneg.py', genes_without_pos, positives_file, output_file, '--num_sequences_to_save', str(num_samples)]
         subprocess.run(command)
     else:
-        output_file = f"{output_prefix}_normal_negatives_output.bed"
+        output_file = f"{output_prefix}_normal_negatives_output{num_samples}.bed"
         command = ['python', 'generate_negatives.py', genes_without_pos_file, output_file, '--num_samples', str(num_samples)]
         subprocess.run(command)
 
@@ -50,7 +50,7 @@ def main():
     run_bedtools_script(args.input_pos, args.input_low_conf1, args.input_low_conf2, args.output_prefix)
     run_bed_to_fasta(f"{args.output_prefix}_genes_without_pos.bed")
     # Step 4: Run sampling script (hard or normal)
-    run_sampling_script(genes_without_pos_file=f"{args.output_prefix}_genes_without_pos.bed", genes_without_pos=f"{args.output_prefix}_genes_without_pos.fa", positives_file=f"{args.output_prefix}_high_conf_pos.fa", num_samples=args.num_samples, output_prefix=args.output_prefix, sampling_mode=args.sampling_mode)
+    run_sampling_script(genes_without_pos_file=f"{args.output_prefix}_genes_without_pos.bed", genes_without_pos=f"{args.output_prefix}_genes_without_pos.fa", positives_file = f"{args.input_pos.split('.')[0]}.fa", num_samples=args.num_samples, output_prefix=args.output_prefix, sampling_mode=args.sampling_mode)
 
 if __name__ == "__main__":
     main()
