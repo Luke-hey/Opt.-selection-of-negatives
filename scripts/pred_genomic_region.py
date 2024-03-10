@@ -25,7 +25,7 @@ def kmer(seq, K=3):
     return kmer_string
 
 # Define the prediction function
-def pred(seq, model, tokenizer, threshold=0.50):
+def pred(seq, model, tokenizer, threshold=0.80):
     with torch.no_grad():
         model.eval()
         inputs = tokenizer(kmer(seq), return_tensors="pt").to(device)
@@ -69,11 +69,12 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
                 # Adjust format to include a fifth column for the name (set to ".")
                 positive_predictions.append((chrom, window_start + start, window_end + start, ".", 0, strand))
 
+    """
     # Save positive predicted windows to a BED file
     with open("positive_predictions.bed", "w") as bedfile:
         for prediction in positive_predictions:
             bedfile.write("\t".join(map(str, prediction)) + "\n")
-
+    """
     return positive_predictions
 
 
@@ -81,21 +82,27 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
 def evaluate_predictions(ground_truth_bed, predicted_bed):
     ground_truth = pybedtools.BedTool(ground_truth_bed)
     predicted = pybedtools.BedTool(predicted_bed)
-    print("Length of ground_truth:", len(ground_truth))
-    print("Length of predicted:", len(predicted))
+
 
 
     # Intersect predicted and ground truth
     intersection = ground_truth.intersect(predicted, u=True, s=True)
 
 
-    precision = len(list(intersection)) / len(predicted)
-    recall = len(list(intersection)) / len(ground_truth)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    TP = len(intersection)
+    FP = len(predicted) - TP
+    FN = len(ground_truth) - TP
 
-    print(f"Precision: {precision}")
-    print(f"Recall: {recall}")
-    print(f"F1 Score: {f1_score}")
+    # Calculate Precision, Recall, and F1
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+    recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    # Print the results
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print("F1 Score:", f1)
+    return precision, recall, f1
 
 
 
@@ -117,7 +124,7 @@ def main():
 
 
     # Evaluate predictions
-    evaluate_predictions(args.positive_bed, "positive_predictions.bed")
+    evaluate_predictions(args.positive_bed, predicted_windows)
 
 if __name__ == "__main__":
     main()
