@@ -3,13 +3,23 @@ import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import pybedtools
 from pyfaidx import Fasta
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
 from tqdm import tqdm
 import os
 from Bio import SeqIO
+from sklearn.metrics import precision_recall_curve, auc
+import matplotlib.pyplot as plt
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+
+def get_file_path(file_name):
+    # Get the directory of the currently executing script
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    # Construct the path to the file
+    return os.path.join(current_dir, file_name)
 
 # Define the kmer function
 def kmer(seq, K=3):
@@ -25,7 +35,7 @@ def kmer(seq, K=3):
     return kmer_string
 
 # Define the prediction function
-def pred(seq, model, tokenizer, threshold=0.80):
+def pred(seq, model, tokenizer, threshold = 0.97):
     with torch.no_grad():
         model.eval()
         inputs = tokenizer(kmer(seq), return_tensors="pt").to(device)
@@ -35,19 +45,31 @@ def pred(seq, model, tokenizer, threshold=0.80):
         prediction = (probabilities[:, 1] > threshold).long()
         return prediction.item()
 
+
+def pred_proba(seq, model, tokenizer):
+    with torch.no_grad():
+        model.eval()
+        inputs = tokenizer(kmer(seq), return_tensors="pt").to(device)
+        outputs = model(**inputs)
+        logits = outputs.logits
+        probabilities = torch.nn.functional.softmax(logits, dim=-1)
+        return probabilities[:, 1].item()
+
 # Function to perform sliding window prediction on genomic regions
 def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
     # Load bed files
     genomic_regions = pybedtools.BedTool(genomic_bed)
+
     positive_sequences = pybedtools.BedTool(positive_bed)
 
     # Load genome reference for sequence extraction
-    genome_reference = "/home/bubu23/hg38.fa"        # need to change path here
+    genome_reference = get_file_path("hg38.fa")
     genome = Fasta(genome_reference)
 
     # Initialize an empty list to store positive predicted windows
     positive_predictions = []
     # Iterate over genomic regions with sliding window
+
     for region in tqdm(genomic_regions, desc="Processing genomic regions", unit="region"):
         chrom, start, end, strand = region.chrom, int(region.start), int(region.end), region.strand
 
@@ -60,22 +82,13 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
         for window_start in tqdm(range(0, len(sequence) - 101, 20), desc="Processing windows", unit="window", leave=False):
             window_end = window_start + 101
             window_sequence = sequence[window_start:window_end]
-
-            # Make predictions using the provided function
-            prediction = pred(window_sequence, model, tokenizer)
-
-            # Check if the prediction is positive and add to the list
-            if prediction == 1:
-                # Adjust format to include a fifth column for the name (set to ".")
-                positive_predictions.append((chrom, window_start + start, window_end + start, ".", 0, strand))
-
-    """
-    # Save positive predicted windows to a BED file
-    with open("positive_predictions.bed", "w") as bedfile:
-        for prediction in positive_predictions:
-            bedfile.write("\t".join(map(str, prediction)) + "\n")
-    """
+            probability = pred_proba(window_sequence, model, tokenizer)
+            if strand == '+':
+                positive_predictions.append((chrom, window_start + start, window_end + start, ".", str(probability), strand))
+            elif strand == '-':
+                positive_predictions.append((chrom, end-window_end, end-window_start, ".", str(probability), strand))
     return positive_predictions
+
 
 
 # Function to evaluate predictions using precision, recall, and confusion matrix
@@ -84,10 +97,9 @@ def evaluate_predictions(ground_truth_bed, predicted_bed):
     predicted = pybedtools.BedTool(predicted_bed)
 
 
-
     # Intersect predicted and ground truth
-    intersection = ground_truth.intersect(predicted, u=True, s=True)
-
+    intersection = ground_truth.intersect(predicted, u=True, s=True, f=0.20)
+    #intersection = predicted.intersect(ground_truth, u=True, s=True)
 
     TP = len(intersection)
     FP = len(predicted) - TP
@@ -98,13 +110,33 @@ def evaluate_predictions(ground_truth_bed, predicted_bed):
     recall = TP / (TP + FN) if (TP + FN) > 0 else 0
     f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
-    # Print the results
-    print("Precision:", precision)
-    print("Recall:", recall)
-    print("F1 Score:", f1)
+
     return precision, recall, f1
 
+def plot_precision_recall_curve(ground_truth_bed, predicted_windows):
+    ground_truth = pybedtools.BedTool(ground_truth_bed)
+    #predicted_windows = pybedtools.BedTool(predicted_windows)
 
+    true_labels = []
+    probabilities = []
+
+    for interval in predicted_windows:
+        intersection = ground_truth.intersect([interval], u=True, s=True, f=0.20)
+        if len(intersection) > 0:
+            true_labels.append(1)
+        else:
+            true_labels.append(0)
+        probabilities.append(float(interval[4]))
+
+    precision, recall, _ = precision_recall_curve(true_labels, probabilities)
+    auprc = auc(recall, precision)
+
+    plt.plot(recall, precision, label=f'AUPRC = {auprc:.2f}')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve')
+    plt.legend()
+    plt.show()
 
 
 def main():
@@ -124,7 +156,10 @@ def main():
 
 
     # Evaluate predictions
-    evaluate_predictions(args.positive_bed, predicted_windows)
+    #evaluate_predictions(args.positive_bed, predicted_windows)
+
+    plot_precision_recall_curve(args.positive_bed, predicted_windows)
+
 
 if __name__ == "__main__":
     main()
