@@ -35,7 +35,7 @@ def kmer(seq, K=3):
     return kmer_string
 
 # Define the prediction function
-def pred(seq, model, tokenizer, threshold = 0.97):
+def pred(seq, model, tokenizer, threshold = 0.99):
     with torch.no_grad():
         model.eval()
         inputs = tokenizer(kmer(seq), return_tensors="pt").to(device)
@@ -63,7 +63,7 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
     positive_sequences = pybedtools.BedTool(positive_bed)
 
     # Load genome reference for sequence extraction
-    genome_reference = get_file_path("hg38.fa")
+    genome_reference = "/home/bubu23/hg38.fa"
     genome = Fasta(genome_reference)
 
     # Initialize an empty list to store positive predicted windows
@@ -82,6 +82,14 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
         for window_start in tqdm(range(0, len(sequence) - 101, 20), desc="Processing windows", unit="window", leave=False):
             window_end = window_start + 101
             window_sequence = sequence[window_start:window_end]
+            """
+            prediction = pred(window_sequence, model, tokenizer)
+            if prediction == 1:
+                if strand == '+':
+                    positive_predictions.append((chrom, window_start + start, window_end + start, ".", 0, strand))
+                elif strand == '-':
+                    positive_predictions.append((chrom, end-window_end, end-window_start, ".", 0, strand))
+            """
             probability = pred_proba(window_sequence, model, tokenizer)
             if strand == '+':
                 positive_predictions.append((chrom, window_start + start, window_end + start, ".", str(probability), strand))
@@ -113,7 +121,7 @@ def evaluate_predictions(ground_truth_bed, predicted_bed):
 
     return precision, recall, f1
 
-def plot_precision_recall_curve(ground_truth_bed, predicted_windows):
+def calculate_precision_recall_curve(ground_truth_bed, predicted_windows):
     ground_truth = pybedtools.BedTool(ground_truth_bed)
     #predicted_windows = pybedtools.BedTool(predicted_windows)
 
@@ -128,16 +136,21 @@ def plot_precision_recall_curve(ground_truth_bed, predicted_windows):
             true_labels.append(0)
         probabilities.append(float(interval[4]))
 
-    precision, recall, _ = precision_recall_curve(true_labels, probabilities)
+    #precision, recall, _ = precision_recall_curve(true_labels, probabilities)
+    precision, recall, thresholds = precision_recall_curve(true_labels, probabilities)
     auprc = auc(recall, precision)
 
+
+    return precision, recall, thresholds, auprc
+
+
+def plot_precision_recall_curve(precision, recall, auprc):
     plt.plot(recall, precision, label=f'AUPRC = {auprc:.2f}')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.title('Precision-Recall Curve')
     plt.legend()
     plt.show()
-
 
 def main():
     # Parse command line arguments
@@ -156,9 +169,18 @@ def main():
 
 
     # Evaluate predictions
-    #evaluate_predictions(args.positive_bed, predicted_windows)
+    #precision, recall, f1 = evaluate_predictions(args.positive_bed, predicted_windows)
 
-    plot_precision_recall_curve(args.positive_bed, predicted_windows)
+    precision, recall, thresholds, auprc = calculate_precision_recall_curve(args.positive_bed, predicted_windows)
+
+    if precision is not None and recall is not None and thresholds is not None:
+        # Plot precision-recall curve
+        #plot_precision_recall_curve(precision, recall, auprc)
+
+        # Print thresholds
+        print("Thresholds:", thresholds)
+        print("precision:", precision)
+        print("recall:", recall)
 
 
 if __name__ == "__main__":
