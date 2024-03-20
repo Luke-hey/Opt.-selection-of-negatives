@@ -12,6 +12,7 @@ def load_fasta_sequences(file_path):
     with open(file_path, 'r') as fasta_file:
         for record in SeqIO.parse(fasta_file, 'fasta'):
             sequence = str(record.seq).replace('U', 'T')
+            sequence = sequence.upper()
             # Insert a space after every 3 characters
             spaced_sequence = ' '.join([sequence[i:i + 3] for i in range(0, len(sequence), 3)])
             sequences.append(spaced_sequence)
