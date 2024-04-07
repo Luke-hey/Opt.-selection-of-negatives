@@ -68,7 +68,39 @@ key features
 
 - **Run Main Script:**
   - Use `main_script.py` to sample negatives based on high confidence and both low confidence BED files.
-  - use following command to check input parameters for script:
+  - Use following command to check input parameters for script:
     ```bash
     python main_script.py --help
+    ```
+### 4. Finetune DNABERT
+
+- **Run DNABERT_3mer Script:**
+  - Use `DNABERT_3mer.py` to finetune the model for the binary classification task using the high confident positives and sampled negatives in fasta format.
+  - Use following command to check input parameters for script:
+    ```bash
+    python DNABERT_3mer.py --help
+    ```
+
+### 5. Prediction on test set
+
+- **Run pred_test_seq Script:**
+  - After Step 4 there will be a file "test_positive_sequences.fa" which contains the sequences from the test set after the finetuning.
+  - Now need to sample some new negatives which weren't in the training set (use generate_negatives.py or sampling_hardneg.py manually)
+  - After that use `pred_test_seq.py` to calculate F1 score on the test positive and new sampled negatives which don't overlap with training negatives.
+  - Use following command to check input parameters for script:
+    ```bash
+    python pred_test_seq.py --help
+    ```
+
+ ### 6. Prediction on test set
+
+- **Run pred_genomic_region Script:**
+  - Here we need the genomic region and the positive sequences on those regions in BED format which should be predicted.
+  - Might need to pad the positives before using them with the pad_positive.py script
+  - Additionally need to finetune DNABERT again but this time check for overlapp between high_conf_positives and your predicted sites. (use bedtools substract to modify the positive file)
+  - Negatives might need to be adjusted in size after the positives got modified.
+  - After that use `pred_genomic_region.py` to calculate AUPRC and plot the results.
+  - Use following command to check input parameters for script:
+    ```bash
+    python pred_genomic_region.py --help
     ```
