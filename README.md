@@ -68,17 +68,7 @@ key features
 
 - **Run Main Script:**
   - Use `main_script.py` to sample negatives based on high confidence and both low confidence BED files.
-  - Example command:
+  - use following command to check input parameters for script:
     ```bash
-    python main_script.py --input_pos name_of_high_conf_pos.bed --input_low_conf1 name_of_low_conf1_pos.bed --input_low_conf2 name_of_low_conf2_pos.bed --num_samples 500 --output_prefix your_prefix --sampling_mode normal
+    python main_script.py --help
     ```
-  - Explanation:
-    - `--input_pos`: Path to the high confidence positive BED file.
-    - `--input_low_conf1` and `--input_low_conf2`: Paths to the low confidence positive BED files.
-    - `--num_samples`: Number of negative samples to generate.
-    - `--output_prefix`: Prefix for the output negative samples.
-    - `--sampling_mode`: Choose between "normal" or "hard" for different sampling modes.
-      - "normal": Sequences are randomly sampled.
-      - "hard": Sequences are sampled based on their similarity to positive sequences.
-
-Adjust the command parameters based on your specific file paths and preferences.
