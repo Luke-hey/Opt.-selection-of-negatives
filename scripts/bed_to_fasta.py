@@ -11,13 +11,32 @@ def extract_sequences_from_bed(bed_file, output_file):
     bed_file = BedTool(bed_file)
     hg_fasta = BedTool(REFERENCE_GENOME)
     sequences = bed_file.sequence(fi=hg_fasta, s=True, nameOnly=True)
-    sequences.save_seqs(output_file)
+
+    # Open the generated FASTA file for reading
+    with open(sequences.seqfn) as fasta_file:
+        # Open the output file for writing
+        with open(output_file, 'w') as output_handle:
+            sequence = ''
+            for line in fasta_file:
+                # If it's a sequence header line
+                if line.startswith('>'):
+                    # Write the previous sequence to the output file in uppercase
+                    if sequence:
+                        output_handle.write(sequence.upper() + '\n')
+                        sequence = ''
+                    output_handle.write(line)
+                else:
+                    sequence += line.strip()
+            # Write the last sequence to the output file in uppercase
+            if sequence:
+                output_handle.write(sequence.upper() + '\n')
 
     # Print the number of sequences in the resulting FASTA file
     num_sequences = sum(1 for _ in open(output_file)) // 2
     print(f"Number of sequences in {output_file}: {num_sequences}")
 
-    return sequences
+    return output_file
+
 
 def main():
     parser = argparse.ArgumentParser(description="Extract sequences from BED file using a fixed reference genome.")

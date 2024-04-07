@@ -79,7 +79,7 @@ def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
             # If the strand is negative, you might want to reverse complement the sequence
             sequence = genome[chrom][start:end].reverse.complement.seq
 
-        for window_start in tqdm(range(0, len(sequence) - 101, 20), desc="Processing windows", unit="window", leave=False):
+        for window_start in tqdm(range(0, len(sequence) - 101, 5), desc="Processing windows", unit="window", leave=False):
             window_end = window_start + 101
             window_sequence = sequence[window_start:window_end]
             """
@@ -106,7 +106,7 @@ def evaluate_predictions(ground_truth_bed, predicted_bed):
 
 
     # Intersect predicted and ground truth
-    intersection = ground_truth.intersect(predicted, u=True, s=True, f=0.20)
+    intersection = ground_truth.intersect(predicted, u=True, s=True, f=0.1)
     #intersection = predicted.intersect(ground_truth, u=True, s=True)
 
     TP = len(intersection)
@@ -129,7 +129,7 @@ def calculate_precision_recall_curve(ground_truth_bed, predicted_windows):
     probabilities = []
 
     for interval in predicted_windows:
-        intersection = ground_truth.intersect([interval], u=True, s=True, f=0.20)
+        intersection = ground_truth.intersect([interval], u=True, s=True, f=0.1)
         if len(intersection) > 0:
             true_labels.append(1)
         else:
@@ -175,12 +175,13 @@ def main():
 
     if precision is not None and recall is not None and thresholds is not None:
         # Plot precision-recall curve
-        #plot_precision_recall_curve(precision, recall, auprc)
+        plot_precision_recall_curve(precision, recall, auprc)
 
         # Print thresholds
-        print("Thresholds:", thresholds)
-        print("precision:", precision)
-        print("recall:", recall)
+
+        print("Thresholds:", thresholds[-1])
+        print("precision:", precision[-1])
+        print("recall:", recall[-1])
 
 
 if __name__ == "__main__":

@@ -118,19 +118,29 @@ def main():
     val_ds = Dataset.from_dict(val_dict)
     test_ds = Dataset.from_dict(test_dict)
 
-    """
-    test_positive_sequences = [tokenizer.decode(test_ds['input_ids'][i], skip_special_tokens=True) for i, label in enumerate(test_ds['labels']) if label == 1]
+    if not os.path.exists("test_positive_sequences.fa"):
+        test_positive_sequences = [tokenizer.decode(test_ds['input_ids'][i], skip_special_tokens=True) for i, label in enumerate(test_ds['labels']) if label == 1]
 
-    # needed to save positives in test set for predictions
-    def save_sequences_to_fasta(sequences, file_path):
-        with open(file_path, 'w') as fasta_file:
-            for i, seq in enumerate(sequences):
-                fasta_file.write(f'>positive_sequence_{i}\n{seq}\n')
+        # needed to save positives in test set for predictions
+        def save_sequences_to_fasta(sequences, file_path):
+            with open(file_path, 'w') as fasta_file:
+                for i, seq in enumerate(sequences):
+                    fasta_file.write(f'>positive_sequence_{i}\n{seq}\n')
 
-    # Save the positive sequences to a file / need to do this only once per dataset
-    positive_sequences_file_path = "test_positive_sequences.fa"
-    save_sequences_to_fasta(test_positive_sequences, positive_sequences_file_path)
-    """
+        # Save the positive sequences to a file / need to do this only once per dataset
+        positive_sequences_file_path = "test_positive_sequences.fa"
+        save_sequences_to_fasta(test_positive_sequences, positive_sequences_file_path)
+
+
+
+
+    def compute_metrics(p):
+        predictions = p.predictions
+        labels = p.label_ids
+        preds = torch.softmax(torch.tensor(predictions), dim=1)[:, 1]
+        roc_auc = roc_auc_score(labels, preds)
+        return {"roc_auc": roc_auc}
+
 
     batch_size = 16
     training_args = TrainingArguments(output_dir=f"DNABERT3mer_results_{negative_sequences_file_name}",
@@ -147,15 +157,6 @@ def main():
                                       #push_to_hub=True
                                       )
 
-    def compute_metrics(p):
-        predictions = p.predictions
-        labels = p.label_ids
-        preds = torch.softmax(torch.tensor(predictions), dim=1)[:, 1]
-        roc_auc = roc_auc_score(labels, preds)
-        return {"roc_auc": roc_auc}
-
-
-
     trainer = Trainer(
         model,
         training_args,
@@ -164,7 +165,7 @@ def main():
         data_collator=data_collator,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
-        callbacks = [EarlyStoppingCallback(early_stopping_patience=4)]
+        callbacks = [EarlyStoppingCallback(early_stopping_patience=6)]
     )
 
     trainer.train()
