@@ -46,9 +46,13 @@ def cosine_similarity(vector_a, vector_b):
     return dot_product / (norm_a * norm_b)
 
 
-def generate_hard_negatives(genes_without_pos_file, positives_file, output_file, num_sequences_to_save=4186):
+def generate_hard_negatives(genes_without_pos_file, positives_file, output_file, num_sequences_to_save=None):
     genes_without_pos = load_fasta_sequences(genes_without_pos_file)
     sequences_dict_pos = load_fasta_sequences(positives_file)
+
+    if num_sequences_to_save is None:
+        num_sequences_to_save = len(sequences_dict_pos)
+
 
     dinucleotide_vectors = dict_to_dinucleotide_vectors(sequences_dict_pos)
 
@@ -114,7 +118,8 @@ if __name__ == "__main__":
     parser.add_argument("genes_without_pos_file", help="FASTA file containing gene sequences without positive samples")
     parser.add_argument("positives_file", help="FASTA file containing positive samples")
     parser.add_argument("output_file", help="Output file for hard negative sequences")
-    parser.add_argument("--num_sequences_to_save", type=int, default=4186, help="Number of sequences to save (default: 4186)")
+    parser.add_argument("--num_sequences_to_save", type=int, default=None, help="Number of sequences to save (default: number of sequences in positives_file)")
+
 
     args = parser.parse_args()
 

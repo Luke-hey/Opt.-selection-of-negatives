@@ -7,7 +7,9 @@ import random
 
 SEQUENCE_LENGTH = 101  # Set your desired sequence length
 
-def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_pos, output_bed, num_samples=12558, existing_negatives=[]):
+def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_pos, output_bed, num_samples=None, existing_negatives=[]):
+    if num_samples is None:
+        num_samples = sum(1 for _ in open(positive_bed))
     # Convert the input BED files to BedTool objects
     input_bedtool = BedTool(input_bed)
     positive_bedtool = BedTool(positive_bed)
@@ -74,7 +76,7 @@ def main():
     parser.add_argument("pos_low_conf1", help="BED file containing low positive sequences")
     parser.add_argument("pos_low_conf2", help="BED file containing low positive sequences")
     parser.add_argument("output_bed", help="Output BED file")
-    parser.add_argument("--num_samples", type=int, default=12558, help="Number of sequences to sample (default: 12558)")
+    parser.add_argument("--num_samples", type=int, default=None, help="Number of sequences to sample (default: number of positive sequences in positive_bed)")
     parser.add_argument("--existing_negatives", nargs='+', default=[], help="List of existing negative files to avoid overlaps")
 
     args = parser.parse_args()
