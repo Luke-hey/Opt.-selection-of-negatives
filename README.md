@@ -92,7 +92,7 @@ key features
     python pred_test_seq.py --help
     ```
 
- ### 6. Prediction on test set
+ ### 6. Prediction on gene regions
 
 - **Run pred_genomic_region Script:**
   - Here we need the genomic region and the positive sequences on those regions in BED format which should be predicted.
@@ -100,6 +100,7 @@ key features
   - Additionally need to finetune DNABERT again but this time check for overlapp between high_conf_positives and your predicted sites. (use bedtools substract to modify the positive file)
   - Negatives might need to be adjusted in size after the positives got modified.
   - After that use `pred_genomic_region.py` to calculate AUPRC and plot the results.
+  - Important note: the order of the finetuned model as input of the script should be 1:1 / 1:3 / 1:1 similar / 1:3 mixed
   - Use following command to check input parameters for script:
     ```bash
     python pred_genomic_region.py --help
