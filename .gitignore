@@ -10,6 +10,9 @@ __pycache__/
 *.png
 *.pdf
 *.gz
+*.bam
+*.bai
+*.jpeg
 
 # Distribution / packaging
 .Python
