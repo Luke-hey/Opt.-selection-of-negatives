@@ -5,9 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import argparse
-
 from Bio import SeqIO
 from Bio.Seq import Seq
+from tqdm import tqdm
 
 def load_fasta_sequences(file_path):
     sequences = {}
@@ -45,14 +45,12 @@ def cosine_similarity(vector_a, vector_b):
 
     return dot_product / (norm_a * norm_b)
 
-
 def generate_hard_negatives(genes_without_pos_file, positives_file, output_file, num_sequences_to_save=None):
     genes_without_pos = load_fasta_sequences(genes_without_pos_file)
     sequences_dict_pos = load_fasta_sequences(positives_file)
 
     if num_sequences_to_save is None:
         num_sequences_to_save = len(sequences_dict_pos)
-
 
     dinucleotide_vectors = dict_to_dinucleotide_vectors(sequences_dict_pos)
 
@@ -73,6 +71,10 @@ def generate_hard_negatives(genes_without_pos_file, positives_file, output_file,
 
     # Sort sequences by length in descending order
     sorted_genes_without_pos = sorted(genes_without_pos.items(), key=lambda x: len(x[1]), reverse=True)
+
+    # Initialize tqdm progress bar
+    total_windows = sum((len(seq) - window_size + 1) for _, seq in sorted_genes_without_pos if len(seq) >= window_size)
+    progress_bar = tqdm(total=total_windows, desc='Processing windows')
 
     # Iterate over sequences in genes_without_pos
     for header, sequence in sorted_genes_without_pos:
@@ -102,6 +104,12 @@ def generate_hard_negatives(genes_without_pos_file, positives_file, output_file,
                 if similarity > matching_windows[-1][3]:
                     matching_windows[-1] = (header, i, window_sequence, similarity)
 
+            # Update progress bar
+            progress_bar.update(1)
+
+    # Close the progress bar
+    progress_bar.close()
+
     with open(output_file, 'w') as fastafile:
         for i, window_info in enumerate(matching_windows, 1):
             header = f"hard_neg_{i}"
@@ -112,14 +120,12 @@ def generate_hard_negatives(genes_without_pos_file, positives_file, output_file,
 
         print(f"Saved {min(i, num_sequences_to_save)} sequences to {output_file}")
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate hard negative sequences based on dinucleotide composition.")
     parser.add_argument("genes_without_pos_file", help="FASTA file containing gene sequences without positive samples")
     parser.add_argument("positives_file", help="FASTA file containing positive samples")
     parser.add_argument("output_file", help="Output file for hard negative sequences")
     parser.add_argument("--num_sequences_to_save", type=int, default=None, help="Number of sequences to save (default: number of sequences in positives_file)")
-
 
     args = parser.parse_args()
 

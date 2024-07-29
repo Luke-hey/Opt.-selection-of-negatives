@@ -1,18 +1,19 @@
-#!/usr/bin/env python
-
 import argparse
 import pybedtools
 from pybedtools import BedTool
 import random
-
-SEQUENCE_LENGTH = 101  # Set your desired sequence length
+from tqdm import tqdm
 
 def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_pos, output_bed, num_samples=None, existing_negatives=[]):
     if num_samples is None:
         num_samples = sum(1 for _ in open(positive_bed))
+
     # Convert the input BED files to BedTool objects
     input_bedtool = BedTool(input_bed)
     positive_bedtool = BedTool(positive_bed)
+
+    # Get lengths of positive sequences
+    positive_lengths = [len(interval) for interval in positive_bedtool]
 
     # Merge existing negative files into a single BedTool object
     existing_negatives_bed_string = ''
@@ -25,6 +26,9 @@ def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_
 
     sampled_negative_intervals_bedtool = BedTool([])
     sampled_intervals = set()
+    neg_counter = 1
+    # Initialize tqdm progress bar
+    progress_bar = tqdm(total=num_samples, desc='Sampling negatives')
 
     while len(sampled_intervals) < num_samples:
         # Shuffle the list of intervals from the input BED file
@@ -39,12 +43,15 @@ def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_
             chrom = interval.chrom
             strand = interval.strand if interval.strand else '.'  # Handle cases where strand information is missing
 
+            # Select a random length from the positive sequence lengths
+            length = random.choice(positive_lengths)
+
             # Calculate the midpoint of the interval
             midpoint = (start + end) // 2
 
-            # Adjust the interval length to the constant sequence length
-            adjusted_start = midpoint - SEQUENCE_LENGTH // 2
-            adjusted_end = midpoint + (SEQUENCE_LENGTH // 2) + (SEQUENCE_LENGTH % 2)
+            # Adjust the interval length to the selected length
+            adjusted_start = midpoint - length // 2
+            adjusted_end = midpoint + (length // 2) + (length % 2)
 
             # Check for overlap with positive intervals and existing negative intervals
             if not (positive_bedtool.intersect(BedTool(f"{chrom}\t{adjusted_start}\t{adjusted_end}\t{interval[3]}\t{interval[4]}\t{interval[5]}\n", from_string=True), u=True, s=True) or
@@ -61,10 +68,17 @@ def sample_non_overlapping_negative_sequences(input_bed, positive_bed, low_conf_
                 # If no overlap, add the adjusted interval to the output BedTool and update the sampled intervals set
                 if not overlap:
                     sampled_intervals.add((chrom, adjusted_start, adjusted_end, strand))
-                    sampled_negative_intervals_bedtool = sampled_negative_intervals_bedtool.cat(BedTool(f"{chrom}\t{adjusted_start}\t{adjusted_end}\t{interval[3]}\t{interval[4]}\t{interval[5]}\n", from_string=True), postmerge=False)
+                    name = f"negative{neg_counter}"
+                    neg_counter += 1
+                    sampled_negative_intervals_bedtool = sampled_negative_intervals_bedtool.cat(BedTool(f"{chrom}\t{adjusted_start}\t{adjusted_end}\t{name}\t{interval[4]}\t{interval[5]}\n", from_string=True), postmerge=False)
+                    # Update progress bar
+                    progress_bar.update(1)
 
             if len(sampled_intervals) >= num_samples:
                 break
+
+    # Close the progress bar
+    progress_bar.close()
 
     # Save the sampled negative intervals to the output BED file
     sampled_negative_intervals_bedtool.saveas(output_bed)

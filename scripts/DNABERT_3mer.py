@@ -8,6 +8,7 @@ from datasets import Dataset, load_metric
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 #from torch.utils.data import Dataset
+import shutil
 import os
 from transformers import (
     AutoTokenizer,
@@ -18,6 +19,7 @@ from transformers import (
     Trainer,
     EarlyStoppingCallback,
 )
+import torch.optim as optim
 
 def load_fasta_sequences(file_path):
     sequences = {}
@@ -32,8 +34,17 @@ def main():
     parser = argparse.ArgumentParser(description="Train DNA BERT for binary classification.")
     parser.add_argument("--positive_sequences", required=True, help="Path to the positive sequences FASTA file")
     parser.add_argument("--negative_sequences", required=True, help="Path to the negative sequences FASTA file")
+    parser.add_argument("--output_dir", default=".", help="Output directory to save the model and tokenizer")
     args = parser.parse_args()
 
+
+    # Set the random seed for reproducibility
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
     negative_sequences_file_name = os.path.splitext(os.path.basename(args.negative_sequences))[0]
 
@@ -62,8 +73,6 @@ def main():
             kmer_string += kmer_list[i]
         return kmer_string
 
-
-    # creating datasets (training 70% train and val are 15% each)
     sequences_pos = list(sequences_dict_pos.values())
     sequences_neg = list(sequences_dict_neg.values())
 
@@ -77,8 +86,57 @@ def main():
     # Labels for positive and negative sequences
     labels = [1] * len(sequences_pos) + [0] * len(sequences_neg)
 
+
+
+    # Print the class distribution before splitting
+    unique_classes, counts = np.unique(labels, return_counts=True)
+    print("Class distribution before splitting:", dict(zip(unique_classes, counts)))
+
+    # Split into train (80%) and validation (20%) sets
+    train_sequences, val_sequences, train_labels, val_labels = train_test_split(
+        all_sequences, labels, test_size=0.2, random_state=seed, stratify=labels
+    )
+
+    # Print the class distribution in training and validation sets
+    unique_classes_train, counts_train = np.unique(train_labels, return_counts=True)
+    print("Class distribution in training set:", dict(zip(unique_classes_train, counts_train)))
+
+    unique_classes_val, counts_val = np.unique(val_labels, return_counts=True)
+    print("Class distribution in validation set:", dict(zip(unique_classes_val, counts_val)))
+
+    # Create dictionaries for each split
+    def create_dict(sequences, labels, tokenizer):
+        encodings = tokenizer(sequences, padding=True, truncation=False, return_tensors="pt")
+        return {
+            'input_ids': encodings['input_ids'].tolist(),
+            'token_type_ids': encodings['token_type_ids'].tolist(),
+            'attention_mask': encodings['attention_mask'].tolist(),
+            'labels': labels
+        }
+
+    train_dict = create_dict(train_sequences, train_labels, tokenizer)
+    val_dict = create_dict(val_sequences, val_labels, tokenizer)
+
+    # Create datasets
+    train_ds = Dataset.from_dict(train_dict)
+    val_ds = Dataset.from_dict(val_dict)
+    """
+    sequences_pos = list(sequences_dict_pos.values())
+    sequences_neg = list(sequences_dict_neg.values())
+
+
+    # Apply kmer to all sequences
+    sequences_pos = [kmer(seq) for seq in sequences_pos]
+    sequences_neg = [kmer(seq) for seq in sequences_neg]
+
+    # Concatenate positive and negative sequences
+    all_sequences = sequences_pos + sequences_neg
+
+    # Labels for positive and negative sequences
+    labels = [1] * len(sequences_pos) + [0] * len(sequences_neg)
+
     # Set the random seed for reproducibility
-    seed = 42
+    #seed = 42
 
     # Print the class distribution before splitting
     unique_classes, counts = np.unique(labels, return_counts=True)
@@ -101,7 +159,7 @@ def main():
     print("Class distribution in validation set:", dict(zip(unique_classes_val, counts_val)))
     # Create dictionaries for each split
     def create_dict(sequences, labels, tokenizer):
-        encodings = tokenizer(sequences, padding=True, return_tensors="pt")
+        encodings = tokenizer(sequences, padding=True, truncation=False, return_tensors="pt")
         return {
             'input_ids': encodings['input_ids'].tolist(),
             'token_type_ids': encodings['token_type_ids'].tolist(),
@@ -130,7 +188,7 @@ def main():
         # Save the positive sequences to a file / need to do this only once per dataset
         positive_sequences_file_path = "test_positive_sequences.fa"
         save_sequences_to_fasta(test_positive_sequences, positive_sequences_file_path)
-
+    """
 
 
 
@@ -143,7 +201,8 @@ def main():
 
 
     batch_size = 16
-    training_args = TrainingArguments(output_dir=f"DNABERT3mer_results_{negative_sequences_file_name}",
+    output_dir = f"DNABERT3mer_results_{negative_sequences_file_name}"
+    training_args = TrainingArguments(output_dir=output_dir,
                                       evaluation_strategy = "epoch",
                                       #eval_steps = 100,
                                       save_strategy = "epoch",
@@ -154,6 +213,7 @@ def main():
                                       weight_decay=0.01,
                                       metric_for_best_model = "eval_loss",
                                       load_best_model_at_end=True,
+                                      seed=seed,
                                       #push_to_hub=True
                                       )
 
@@ -165,22 +225,31 @@ def main():
         data_collator=data_collator,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
-        callbacks = [EarlyStoppingCallback(early_stopping_patience=6)]
+        callbacks = [EarlyStoppingCallback(early_stopping_patience=6)],
+        optimizers=(optim.AdamW(model.parameters(), lr=2e-5), None)
     )
 
     trainer.train()
-    results = trainer.evaluate(test_ds)
+    #results = trainer.evaluate(test_ds)
 
-    print(results)
+    #print(results)
 
 
     # Save the model and tokenizer with a name based on the negative sequences file
-    save_model_path = f"finetuned_DNABERT3mer_{negative_sequences_file_name}"
-    save_tokenizer_path = f"finetuned_DNABERT3mer_{negative_sequences_file_name}"
+    #save_model_path = f"finetuned_DNABERT3mer_{negative_sequences_file_name}"
+    #save_tokenizer_path = f"finetuned_DNABERT3mer_{negative_sequences_file_name}"
+
+    save_model_path = os.path.join(args.output_dir, f"finetuned_DNABERT3mer_{negative_sequences_file_name}")
+    save_tokenizer_path = os.path.join(args.output_dir, f"finetuned_DNABERT3mer_{negative_sequences_file_name}")
 
     # Uncomment the following lines to save the model and tokenizer
     trainer.save_model(save_model_path)
     tokenizer.save_pretrained(save_tokenizer_path)
+
+    # Remove the output directory after training (this is only needed if we consider the checkpoints of the model)
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+        print(f"Removed directory: {output_dir}")
 
 
 if __name__ == "__main__":
