@@ -13,6 +13,7 @@ __pycache__/
 *.bam
 *.bai
 *.jpeg
+*.txt
 
 # Distribution / packaging
 .Python
