@@ -75,7 +75,7 @@ for RUN in {1..3}; do
     ls -l
 
     # Use relative path for the script
-    python ./scripts/main_script.py --input_pos "$INPUT_POS" --input_low_conf1 "$INPUT_LOW_CONF1" --input_low_conf2 "$INPUT_LOW_CONF2" --test_sites "$TEST_SITES" --test_regions "$TEST_REGIONS" --output_prefix "$OUTPUT_PREFIX" --sampling_mode normal --num_samples "$NUM_SAMPLES"
+    python ../../scripts/main_script.py --input_pos "$INPUT_POS" --input_low_conf1 "$INPUT_LOW_CONF1" --input_low_conf2 "$INPUT_LOW_CONF2" --test_sites "$TEST_SITES" --test_regions "$TEST_REGIONS" --output_prefix "$OUTPUT_PREFIX" --sampling_mode normal --num_samples "$NUM_SAMPLES"
 
     if [ $? -ne 0 ]; then
         echo "Error: Python script failed during iteration $RUN"

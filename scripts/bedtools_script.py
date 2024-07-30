@@ -1,12 +1,20 @@
 #!/usr/bin/env python
-
+import os
 import argparse
 import pybedtools
 from pybedtools import BedTool
 
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the relative path
+HG_FASTA_FILE  = os.path.join(script_dir, "../hg38.fa")
+ANNOTATIONS_FILE  = os.path.join(script_dir, "../gencode.v44.annotation.gtf.gz")
+"""
 ANNOTATIONS_FILE = "/home/bubu23/gencode.v44.annotation.gtf.gz"  # add path to annotation here
 HG_FASTA_FILE = "/home/bubu23/hg38.fa"                           # add path to genome here
-
+"""
 def process_bed_files(positives_file, low_conf_pos1_file, low_conf_pos2_file, test_sites_file, test_regions_file, output_prefix):
     # Read constant bed files
     annotations = BedTool(ANNOTATIONS_FILE)

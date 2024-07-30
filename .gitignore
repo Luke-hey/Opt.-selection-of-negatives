@@ -181,3 +181,4 @@ finetuned_DNABERT3mer_*  # Ignore directories starting with "finetuned_DNABERT3m
 proteins/
 
 
+*.fai

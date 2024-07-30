@@ -37,7 +37,8 @@ def pred_proba(seq, model, tokenizer):
 
 def predict_genomic_regions(genomic_bed, positive_bed, model, tokenizer):
     genomic_regions = pybedtools.BedTool(genomic_bed)
-    genome_reference = "/home/bubu23/hg38.fa"  # Ensure this path is correct
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    genome_reference = os.path.join(script_dir, "../hg38.fa")
     genome = Fasta(genome_reference)
 
     positive_predictions = []

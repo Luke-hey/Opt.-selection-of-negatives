@@ -12,11 +12,10 @@ if [ "$#" -lt 1 ]; then
 fi
 
 # Variables
-script_dir=$(dirname "$0")
-script="$script_dir/pred_genomic_region.py"
+script="../scripts/pred_genomic_region.py"
 directories=("Run_1" "Run_2" "Run_3")
 model_suffixes=("Neg1x" "Neg3x" "shuffled")
-queue_file="plot_queue.txt"
+queue_file="../plot_queue.txt"
 
 # Function to process directories for plotting
 process_directories() {
@@ -54,7 +53,7 @@ process_directories() {
     fi
 
     # Call the plot_script.py script with the necessary arguments
-    python $script --genomic_bed "$genomic_bed" --positive_bed "$positive_bed" --model_names "${model_names[@]}" --plot_variance --output_name "${protein}_variance_plot" --output_dir "${protein_dir}"
+    python "$script" --genomic_bed "$genomic_bed" --positive_bed "$positive_bed" --model_names "${model_names[@]}" --plot_variance --output_name "${protein}_variance_plot" --output_dir "${protein_dir}"
 }
 
 # Create the queue file if it doesn't exist
