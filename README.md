@@ -55,14 +55,20 @@ key features
 
 - **Reference Genome (hg38):**
   - Download the reference genome from [UCSC Genome Browser](https://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/)
+  - Move the reference genome into the root directory of the repository. (/Opt.-selection-of-negatives)
+  - unzip the file with gunzip (optional)
 
 - **Annotation of Genomic Regions:**
   - Download the genomic region annotation file from [GENCODE](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/gencode.v44.annotation.gtf.gz)
+  - Same as the reference genome file
 
 ### 2. Load Positives
 
 - **Download Positives:**
   - Obtain high confidence and low confidence positive sequences from [ENCODE Project](https://www.encodeproject.org/)
+  - Note: we are using eclip in this project and we for the low confidence and high confidence positives we are using the bednarrow peaks with the 1 and 2 and 1,2 replicates.
+  - This step is important for the name convention of the positives: 1 and 2 are the low confidence positives and 1,2 are the high confidence positives.
+  - example names for the 3 files: proteinname_celltype_replicate.bed so for example QKI_K562_1.bed, QKI_K562_2.bed, QKI_K562_1_2.bed
 
 ### 3. Sample Negatives
 
