@@ -79,6 +79,7 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 ### 4. Sample Negatives
 
 - **Run sample script:**
+  - Important: Before using the script make sure you have the following files in the respective protein directory: proteinname_celltype_1.bed, proteinname_celltype_2.bed, proteinname_celltype_1_2.bed, proteinname_sites.bed and proteinname_regions.bed 
   - Use following script in the respective protein directory (/Opt.-selection-of-negatives/proteins/proteinname) to sample negatives for that protein:
     ```bash
     ../../setup_scripts/run_sampling.sh -p proteinname -c celltype -n number of negatives (multiplyer of positives)
