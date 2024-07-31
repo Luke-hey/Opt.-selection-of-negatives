@@ -84,6 +84,10 @@ We tried three distinct approaches to fine-tune the DNABERT model:
     ../../setup_scripts/run_sampling.sh -p proteinname -c celltype -n number of negatives (multiplyer of positives)
     ```
   - TODO: implement queue system to sample negatives for multiple proteins
+  - Note: the procedure to obtain the negatives we did the following: 1. sample negatives with n=3, 2. pick 1/3 of the 3x negative set randomly to obtain the 1x negative set, 3. to get the similar negatives we used the tool "fasta-shuffle-letters" with:
+   ```bash
+    fasta-shuffle-letters -k 2 -dna proteinname_train.fa
+    ```
  
 ### 5. Finetune DNABERT
 
