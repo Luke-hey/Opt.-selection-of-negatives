@@ -89,6 +89,7 @@ We tried three distinct approaches to fine-tune the DNABERT model:
     ```bash
     fasta-shuffle-letters -k 2 -dna proteinname_train.fa
     ```
+  - After sampling you should have 3 different negative sets in each Run directorys: proteinname_Neg1x.fa, proteinname_Neg3x.fa and proteinname_shuffled.fa
     
 ### 5. Finetune DNABERT
 
