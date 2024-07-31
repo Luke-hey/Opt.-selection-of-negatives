@@ -62,7 +62,7 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 - **Run setup script:**
   - Use following script in the root directory:
     ```bash
-    ./setup_scripts/setup_protein_dirs.sh 3 protein1 protein2
+    ./setup_scripts/run_setup.sh 3 protein1 protein2
     ```
   - This will create a new directory "proteins" where all the single proteins directorys will be saved. Where the 3 is the number of runs, and protein 1 and 2 are the name of the proteins.
   - At the moment the pipeline is working for 3 Run directorys.
