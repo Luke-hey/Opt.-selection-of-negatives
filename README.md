@@ -62,52 +62,50 @@ key features
   - Download the genomic region annotation file from [GENCODE](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_44/gencode.v44.annotation.gtf.gz)
   - Same as the reference genome file
 
-### 2. Load Positives
+### 2. Set up the directory structure
+
+- **Run setup script:**
+  - Use following script in the root directory:
+    ```bash
+    ./setup_scripts/setup_protein_dirs.sh 3 protein1 protein2
+    ```
+  - This will create a new directory "proteins" where all the single proteins directorys will be saved. Where the 3 is the number of runs, and protein 1 and 2 are the name of the proteins.
+  - At the moment the pipeline is working for 3 Run directorys.
+    
+### 3. Load Positives
 
 - **Download Positives:**
   - Obtain high confidence and low confidence positive sequences from [ENCODE Project](https://www.encodeproject.org/)
   - Note: we are using eclip in this project and we for the low confidence and high confidence positives we are using the bednarrow peaks with the 1 and 2 and 1,2 replicates.
   - This step is important for the name convention of the positives: 1 and 2 are the low confidence positives and 1,2 are the high confidence positives.
   - example names for the 3 files: proteinname_celltype_replicate.bed so for example QKI_K562_1.bed, QKI_K562_2.bed, QKI_K562_1_2.bed
+  - move them in the respective protein directory
 
-### 3. Sample Negatives
+### 4. Sample Negatives
 
-- **Run Main Script:**
-  - Use `main_script.py` to sample negatives based on high confidence and both low confidence BED files.
-  - Use following command to check input parameters for script:
+- **Run sample script:**
+  - Use following script in the respective protein directory (/Opt.-selection-of-negatives/proteins/proteinname) to sample negatives for that protein:
     ```bash
-    python main_script.py --help
+    ../../setup_scripts/run_sampling.sh -p proteinname -c celltype -n number of negatives (multiplyer of positives)
     ```
-### 4. Finetune DNABERT
+  - TODO: implement queue system to sample negatives for multiple proteins
+ 
+### 5. Finetune DNABERT
 
-- **Run DNABERT_3mer Script:**
-  - Use `DNABERT_3mer.py` to finetune the model for the binary classification task using the high confident positives and sampled negatives in fasta format.
-  - Use following command to check input parameters for script:
+- **Run DNABERT Script:**
+  - Use following script in the proteins directory (/Opt.-selection-of-negatives/proteins) to start the finetuning process:
     ```bash
-    python DNABERT_3mer.py --help
+    ../setup_scripts/run_DNABERT.sh proteinname1 proteinname2
     ```
-
-### 5. Prediction on test set
-
-- **Run pred_test_seq Script:**
-  - After Step 4 there will be a file "test_positive_sequences.fa" which contains the sequences from the test set after the finetuning.
-  - Now need to sample some new negatives which weren't in the training set (use generate_negatives.py or sampling_hardneg.py manually)
-  - After that use `pred_test_seq.py` to calculate F1 score on the test positive and new sampled negatives which don't overlap with training negatives.
-  - Use following command to check input parameters for script:
-    ```bash
-    python pred_test_seq.py --help
-    ```
+  - Note: this will start a queue
 
  ### 6. Prediction on gene regions
 
 - **Run pred_genomic_region Script:**
-  - Here we need the genomic region and the positive sequences on those regions in BED format which should be predicted.
-  - Might need to pad the positives before using them with the pad_positive.py script
-  - Additionally need to finetune DNABERT again but this time check for overlapp between high_conf_positives and your predicted sites. (use bedtools substract to modify the positive file)
-  - Negatives might need to be adjusted in size after the positives got modified.
-  - After that use `pred_genomic_region.py` to calculate AUPRC and plot the results.
-  - Important note: the order of the finetuned model as input of the script should be 1:1 / 1:3 / 1:1 similar / 1:3 mixed
-  - Use following command to check input parameters for script:
+  - Important: gene regions and test positives should be in bed format, additionally they should be of the format proteinname_sites.bed for positives and proteinname_regions.bed and should be in the respective    protein directory (/Opt.-selection-of-negatives/proteins/proteinname)
+  - Use following script in the proteins directory (/Opt.-selection-of-negatives/proteins) to start the predictions:
     ```bash
-    python pred_genomic_region.py --help
+    ../setup_scripts/run_plot.sh proteinname1 proteinname2
     ```
+  - This again will start again a queue
+  - Additionally it will produce a plot with the average AUPRC and variance of all the 3 Run directorys
