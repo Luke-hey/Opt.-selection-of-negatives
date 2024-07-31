@@ -5,7 +5,6 @@
 
 - [Project Title](#project-title)
 - [Description](#description)
-- [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
@@ -15,7 +14,7 @@
 ## Description
 
 This project focuses on the impact of the selection of the negative examples to fine-tune a transformer model.
-Predicting RNA-binding protein (RBP) binding sites using the DNABERT transformer, specifically tailored for 3-mers. The model is fine-tuned for a binary classification task, distinguishing whether a DNA sequence of length 101 is a binding site or not.
+Predicting RNA-binding protein (RBP) binding sites using the DNABERT transformer, specifically tailored for 3-mers. The model is fine-tuned for a binary classification task, distinguishing whether a DNA sequence of variable length is a binding site or not.
 We tried three distinct approaches to fine-tune the DNABERT model:
 
 1. **Equal Positive-Negative Ratio (1:1):**
@@ -26,10 +25,6 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 
 3. **Selective Similar Negatives (1:1):**
    - This approach involved maintaining a 1:1 ratio but selecting negative sequences that were particularly similar to positive sequences. The goal was to observe the model's performance when dealing with closely related negatives.
-
-## Features
-
-key features
 
 ## Installation
 
