@@ -7,8 +7,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 # Variables
-script_dir=$(dirname "$0")
-script="$script_dir/DNABERT_3mer.py"
+script="../scripts/DNABERT_3mer.py"
 directories=("Run_1" "Run_2" "Run_3")
 queue_file="protein_queue.txt"
 
@@ -30,7 +29,7 @@ process_directories() {
         if [[ -f "$neg1x_fasta" ]]; then
             if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_Neg1x" ]; then
                 echo "Processing $neg1x_fasta"
-                if ! python $script --positive_sequences "$pos_fasta" --negative_sequences "$neg1x_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg1x_fasta" --output_dir "$output_dir"; then
                     echo "Error processing $neg1x_fasta"
                 fi
             else
@@ -44,7 +43,7 @@ process_directories() {
         if [[ -f "$neg3x_fasta" ]]; then
             if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_Neg3x" ]; then
                 echo "Processing $neg3x_fasta"
-                if ! python $script --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir"; then
                     echo "Error processing $neg3x_fasta"
                 fi
             else
@@ -58,7 +57,7 @@ process_directories() {
         if [[ -f "$shuffled_fasta" ]]; then
             if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_shuffled" ]; then
                 echo "Processing $shuffled_fasta"
-                if ! python $script --positive_sequences "$pos_fasta" --negative_sequences "$shuffled_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$shuffled_fasta" --output_dir "$output_dir"; then
                     echo "Error processing $shuffled_fasta"
                 fi
             else
