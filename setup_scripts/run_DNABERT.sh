@@ -7,9 +7,10 @@ if [ "$#" -lt 1 ]; then
 fi
 
 # Variables
-script="../scripts/DNABERT_3mer.py"
+script="../scripts/DNABERT.py"
 directories=("Run_1" "Run_2" "Run_3")
 queue_file="protein_queue.txt"
+kmer_length=6  # Set the desired kmer length here
 
 # Function to process directories
 process_directories() {
@@ -22,18 +23,18 @@ process_directories() {
         neg3x_fasta="${protein_dir}/${dir}/${protein}_Neg3x.fa"
         shuffled_fasta="${protein_dir}/${dir}/${protein}_shuffled.fa"
 
-        # Define output directories
+        # Define output directories with dynamic naming based on k-mer length
         output_dir="${protein_dir}/${dir}/"
 
         # Check and process Neg1x FASTA file
         if [[ -f "$neg1x_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_Neg1x" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg1x" ]; then
                 echo "Processing $neg1x_fasta"
-                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg1x_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg1x_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $neg1x_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT3mer_${protein}_Neg1x already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg1x already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $neg1x_fasta not found"
@@ -41,13 +42,13 @@ process_directories() {
 
         # Check and process Neg3x FASTA file
         if [[ -f "$neg3x_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_Neg3x" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x" ]]; then
                 echo "Processing $neg3x_fasta"
-                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $neg3x_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT3mer_${protein}_Neg3x already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $neg3x_fasta not found"
@@ -55,13 +56,13 @@ process_directories() {
 
         # Check and process Shuffled FASTA file
         if [[ -f "$shuffled_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT3mer_${protein}_shuffled" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_shuffled" ]; then
                 echo "Processing $shuffled_fasta"
-                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$shuffled_fasta" --output_dir "$output_dir"; then
+                if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$shuffled_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $shuffled_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT3mer_${protein}_shuffled already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_shuffled already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $shuffled_fasta not found"

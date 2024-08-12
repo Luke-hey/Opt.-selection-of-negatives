@@ -16,6 +16,7 @@ script="../scripts/pred_genomic_region.py"
 directories=("Run_1" "Run_2" "Run_3")
 model_suffixes=("Neg1x" "Neg3x" "shuffled")
 queue_file="../plot_queue.txt"
+kmer_length=6  # Set the desired kmer length here
 
 # Function to process directories for plotting
 process_directories() {
@@ -36,7 +37,7 @@ process_directories() {
 
     for dir in "${directories[@]}"; do
         for suffix in "${model_suffixes[@]}"; do
-            model_dir="${protein_dir}/${dir}/finetuned_DNABERT3mer_${protein}_${suffix}"
+            model_dir="${protein_dir}/${dir}/finetuned_DNABERT${kmer_length}mer_${protein}_${suffix}"
             if [ -d "$model_dir" ]; then
                 echo "Found model directory: $model_dir"
                 model_names+=("$model_dir")
@@ -52,8 +53,14 @@ process_directories() {
         return 1
     fi
 
-    # Call the plot_script.py script with the necessary arguments
-    python "$script" --genomic_bed "$genomic_bed" --positive_bed "$positive_bed" --model_names "${model_names[@]}" --plot_variance --output_name "${protein}_variance_plot" --output_dir "${protein_dir}"
+    # Construct additional arguments for kmer length if it's not 3
+    kmer_arg=""
+    if [ "$kmer_length" -ne 3 ]; then
+        kmer_arg="--kmer_length $kmer_length"
+    fi
+
+    # Call the pred_genomic_region.py script with the necessary arguments
+    python "$script" --genomic_bed "$genomic_bed" --positive_bed "$positive_bed" --model_names "${model_names[@]}" --plot_variance --output_name "${protein}_variance_plot" --output_dir "${protein_dir}" $kmer_arg
 }
 
 # Create the queue file if it doesn't exist
