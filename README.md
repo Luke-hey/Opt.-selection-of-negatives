@@ -94,9 +94,9 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 ### 5. Finetune DNABERT
 
 - **Run DNABERT Script:**
-  - Use following script in the proteins directory (/Opt.-selection-of-negatives/proteins) to start the finetuning process:
+  - Use following script in the proteins directory (/Opt.-selection-of-negatives/proteins) to start the finetuning process with a specific kmer length:
     ```bash
-    ../setup_scripts/run_DNABERT.sh proteinname1 proteinname2
+    ../setup_scripts/run_DNABERT.sh kmer_length proteinname1 proteinname2
     ```
   - Note: this will start a queue
 
