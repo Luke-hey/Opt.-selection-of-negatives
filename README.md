@@ -40,8 +40,8 @@ We tried three distinct approaches to fine-tune the DNABERT model:
    cd Opt.-selection-of-negatives
 
    # Create and activate Conda environment
-   conda create --name your_env_name python=3.8 --file requirements.txt
-   conda activate your_env_name
+   conda env create -f environment.yml # which wil create a env with all the needed packages and dependencies of the name your_project
+   conda activate your_project
 
 
 ## Usage
