@@ -18,6 +18,7 @@ from transformers import (
     EarlyStoppingCallback,
 )
 import torch.optim as optim
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def load_fasta_sequences(file_path):
     sequences = {}
@@ -116,8 +117,15 @@ def main():
     train_ds = Dataset.from_dict(train_dict)
     val_ds = Dataset.from_dict(val_dict)
 
+    def compute_metrics(p):
+        predictions = p.predictions
+        labels = p.label_ids
+        preds = torch.softmax(torch.tensor(predictions), dim=1)[:, 1]
+        roc_auc = roc_auc_score(labels, preds)
+        return {"roc_auc": roc_auc}
+
     batch_size = 16
-    output_dir = f"DNABERT{kmer_length}_results_{negative_sequences_file_name}"
+    output_dir = f"DNABERT{args.kmer_length}_results_{negative_sequences_file_name}"
     training_args = TrainingArguments(
         output_dir=output_dir,
         evaluation_strategy="epoch",
@@ -147,8 +155,8 @@ def main():
     trainer.train()
 
     # Save the model and tokenizer
-    save_model_path = os.path.join(args.output_dir, f"finetuned_DNABERT{kmer_length}_{negative_sequences_file_name}")
-    save_tokenizer_path = os.path.join(args.output_dir, f"finetuned_DNABERT{kmer_length}_{negative_sequences_file_name}")
+    save_model_path = os.path.join(args.output_dir, f"finetuned_DNABERT{args.kmer_length}_{negative_sequences_file_name}")
+    save_tokenizer_path = os.path.join(args.output_dir, f"finetuned_DNABERT{args.kmer_length}_{negative_sequences_file_name}")
     trainer.save_model(save_model_path)
     tokenizer.save_pretrained(save_tokenizer_path)
 
