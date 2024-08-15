@@ -137,7 +137,116 @@ def plot_precision_recall_curves(models_data, output_name, output_dir):
     output_path = os.path.join(output_dir, f"{output_name}_precision_recall_curve.png")
     plt.savefig(output_path, dpi=300)  # Save the plot with a high resolution for printing
 
-    plt.show()
+    #plt.show()
+
+
+def interpolate_precision_recall(precision, recall, common_recall):
+    f = interp1d(recall, precision, kind='linear', bounds_error=False, fill_value=(precision[0], precision[-1]))
+    return f(common_recall)
+
+def plot_average_auprc(models_data, output_name, output_dir):
+    """Plot average precision-recall curves for different models with dynamic legend mapping."""
+
+    plt.figure(figsize=(11.69, 8.27))  # A4 landscape size
+
+    # Define a common recall range for interpolation
+    common_recall = np.linspace(0, 1, 1000)
+
+    # Dynamic legend mapping based on model names
+    legend_mapping = {}
+    for data in models_data.values():
+        for model_name, _, _, _ in data:
+            if "Neg1x" in model_name:
+                legend_mapping[model_name] = "Equal (1:1)"
+            elif "Neg3x" in model_name:
+                legend_mapping[model_name] = "Imbalanced (1:3)"
+            else:
+                legend_mapping[model_name] = "Shuffled (1:1)"
+
+    for data in models_data.values():
+        interpolated_precisions = []
+        auprcs = []
+
+        for model_name, precision, recall, auprc in data:
+            # Interpolate precision at common recall points
+            interp_precision = interpolate_precision_recall(precision, recall, common_recall)
+            interpolated_precisions.append(interp_precision)
+            auprcs.append(auprc)
+
+        # Calculate average precision and AUPRC
+        precision_avg = np.mean(interpolated_precisions, axis=0)
+        auprc_avg = np.mean(auprcs)
+
+        plt.plot(common_recall, precision_avg, label=f'{legend_mapping[model_name]} = {auprc_avg:.2f}')
+
+    plt.xlabel('Recall', fontsize=18)
+    plt.ylabel('Precision', fontsize=18)
+    plt.title('Precision-Recall Curve', fontsize=20)
+    plt.legend(title='AUPRC', fontsize=14, title_fontsize='16')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.grid(True)
+    plt.tight_layout()
+
+    output_path = os.path.join(output_dir, f"{output_name}_average_precision_recall_curve.png")
+    plt.savefig(output_path, dpi=300)
+    #plt.show()
+
+
+def plot_variance_auprc(models_data, output_name, output_dir):
+    """Plot variance in precision-recall curves for different model groups with dynamic legend mapping."""
+
+    plt.figure(figsize=(11.69, 8.27))  # A4 landscape size
+
+    # Define a common recall range for interpolation
+    common_recall = np.linspace(0, 1, 1000)
+
+    # Dynamic legend mapping based on model names
+    legend_mapping = {
+        "1:1": "Equal (1:1)",
+        "1:3": "Imbalanced (1:3)",
+        "shuffled": "Shuffled (1:1)"
+    }
+
+    for group, data in models_data.items():
+        interpolated_precisions = []
+        auprcs = []
+
+        for model_name, precision, recall, auprc in data:
+            # Interpolate precision at common recall points
+            interp_precision = interpolate_precision_recall(precision, recall, common_recall)
+            interpolated_precisions.append(interp_precision)
+            auprcs.append(auprc)
+
+        if len(interpolated_precisions) == 0:
+            continue
+        # Convert list to numpy array for easier manipulation
+        interpolated_precisions = np.array(interpolated_precisions)
+
+        # Calculate the minimum and maximum precision values at each recall point
+        precision_min = np.min(interpolated_precisions, axis=0)
+        precision_max = np.max(interpolated_precisions, axis=0)
+        precision_avg = np.mean(interpolated_precisions, axis=0)
+        auprc_avg = np.mean(auprcs)
+
+        # Plot the filled area between the minimum and maximum precision values
+        plt.fill_between(common_recall, precision_min, precision_max, alpha=0.2, label=f'{legend_mapping[group]} Variance')
+
+        # Plot the average precision-recall curve
+        plt.plot(common_recall, precision_avg, label=f'{legend_mapping[group]} Average = {auprc_avg:.2f}')
+
+    plt.xlabel('Recall', fontsize=18)
+    plt.ylabel('Precision', fontsize=18)
+    plt.title('Precision-Recall Curve with Grouped Variance', fontsize=20)
+    plt.legend(title='AUPRC', fontsize=14, title_fontsize='16')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.grid(True)
+    plt.tight_layout()
+
+    output_path = os.path.join(output_dir, f"{output_name}_grouped_variance_precision_recall_curve.png")
+    plt.savefig(output_path, dpi=300)
+    #plt.show()
 
 def main():
     parser = argparse.ArgumentParser(description="Genomic Region Prediction")

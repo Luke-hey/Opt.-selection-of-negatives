@@ -37,7 +37,7 @@ process_directories() {
 
     for dir in "${directories[@]}"; do
         for suffix in "${model_suffixes[@]}"; do
-            model_dir="${protein_dir}/${dir}/finetuned_DNABERT${kmer_length}mer_${protein}_${suffix}"
+            model_dir="${protein_dir}/${dir}/finetuned_DNABERT${kmer_length}_${protein}_${suffix}"
             if [ -d "$model_dir" ]; then
                 echo "Found model directory: $model_dir"
                 model_names+=("$model_dir")
