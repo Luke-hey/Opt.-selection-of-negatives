@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Check if at least one protein name is provided as an argument
-if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <protein_name> [<protein_name> ...]"
+# Check if at least one protein name and kmer length are provided as arguments
+if [ "$#" -lt 2 ]; then
+    echo "Usage: $0 <kmer_length> <protein_name> [<protein_name> ...]"
     exit 1
 fi
 
@@ -10,7 +10,10 @@ fi
 script="../scripts/DNABERT.py"
 directories=("Run_1" "Run_2" "Run_3")
 queue_file="protein_queue.txt"
-kmer_length=6  # Set the desired kmer length here
+
+# Retrieve kmer length from the first argument
+kmer_length="$1"
+shift # Shift the arguments to access protein names
 
 # Function to process directories
 process_directories() {
@@ -42,7 +45,7 @@ process_directories() {
 
         # Check and process Neg3x FASTA file
         if [[ -f "$neg3x_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x" ]]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x" ]; then
                 echo "Processing $neg3x_fasta"
                 if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $neg3x_fasta"
