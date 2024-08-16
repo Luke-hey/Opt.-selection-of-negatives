@@ -29,7 +29,7 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 ## Installation
 
 1. **Install Miniconda:**
-   - Download and install Miniconda3 from the [official website](https://docs.anaconda.com/free/miniconda/).
+   - Download and install Miniconda3 from the [official website](https://docs.anaconda.com/free/miniconda/). (23.9.0)
 
 2. **Setup Conda Environment:**
    ```bash
@@ -39,9 +39,15 @@ We tried three distinct approaches to fine-tune the DNABERT model:
    # Navigate to the project directory
    cd Opt.-selection-of-negatives
 
-   # Create and activate Conda environment
+   # Create and activate Conda environment with environment.yml
    conda env create -f environment.yml # which wil create a env with all the needed packages and dependencies of the name your_project
    conda activate your_project
+
+   # Alternatively with requirements.txt
+   conda create -n env_name python=3.9.0
+   conda activate env_name
+   conda install -c bioconda bedtools=2.31.1
+   pip install -r requirements.txt
 
 
 ## Usage
@@ -106,7 +112,7 @@ We tried three distinct approaches to fine-tune the DNABERT model:
   - Important: gene regions and test positives should be in bed format, additionally they should be of the format proteinname_sites.bed for positives and proteinname_regions.bed and should be in the respective    protein directory (/Opt.-selection-of-negatives/proteins/proteinname)
   - Use following script in the proteins directory (/Opt.-selection-of-negatives/proteins) to start the predictions:
     ```bash
-    ../setup_scripts/run_plot.sh proteinname1 proteinname2
+    ../setup_scripts/run_plot.sh -k kmer_length proteinname
     ```
-  - This again will start again a queue
+  - This will start a queue again
   - Additionally it will produce a plot with the average AUPRC and variance of all the 3 Run directorys
