@@ -2,9 +2,37 @@
 
 # Usage function to display help
 usage() {
-    echo "Usage: $0 <protein_name> [<protein_name> ...]"
+    echo "Usage: $0 [-k kmer_length] <protein_name> [<protein_name> ...]"
+    echo "  -k kmer_length : Specify the k-mer length (default is 6)"
     exit 1
 }
+
+# Default k-mer length
+kmer_length=6  # Default value
+
+# Parse options
+while getopts ":k:" opt; do
+    case $opt in
+        k)
+            kmer_length=$OPTARG
+            if ! [[ "$kmer_length" =~ ^[0-9]+$ ]]; then
+                echo "Error: k-mer length must be a positive integer."
+                usage
+            fi
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            ;;
+    esac
+done
+
+# Shift arguments so that $1 refers to the first protein name
+shift $((OPTIND-1))
 
 # Check if at least one protein name is provided as an argument
 if [ "$#" -lt 1 ]; then
@@ -16,7 +44,6 @@ script="../scripts/pred_genomic_region.py"
 directories=("Run_1" "Run_2" "Run_3")
 model_suffixes=("Neg1x" "Neg3x" "shuffled")
 queue_file="../plot_queue.txt"
-kmer_length=6  # Set the desired kmer length here
 
 # Function to process directories for plotting
 process_directories() {

@@ -31,13 +31,13 @@ process_directories() {
 
         # Check and process Neg1x FASTA file
         if [[ -f "$neg1x_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg1x" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_Neg1x" ]; then
                 echo "Processing $neg1x_fasta"
                 if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg1x_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $neg1x_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg1x already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_Neg1x already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $neg1x_fasta not found"
@@ -45,13 +45,13 @@ process_directories() {
 
         # Check and process Neg3x FASTA file
         if [[ -f "$neg3x_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_Neg3x" ]; then
                 echo "Processing $neg3x_fasta"
                 if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$neg3x_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $neg3x_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_Neg3x already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_Neg3x already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $neg3x_fasta not found"
@@ -59,13 +59,13 @@ process_directories() {
 
         # Check and process Shuffled FASTA file
         if [[ -f "$shuffled_fasta" ]]; then
-            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_shuffled" ]; then
+            if [ ! -d "${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_shuffled" ]; then
                 echo "Processing $shuffled_fasta"
                 if ! python "$script" --positive_sequences "$pos_fasta" --negative_sequences "$shuffled_fasta" --output_dir "$output_dir" --kmer_length "$kmer_length"; then
                     echo "Error processing $shuffled_fasta"
                 fi
             else
-                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}mer_${protein}_shuffled already exists. Skipping."
+                echo "Output directory ${output_dir}/finetuned_DNABERT${kmer_length}_${protein}_shuffled already exists. Skipping."
             fi
         else
             echo "Negative FASTA file $shuffled_fasta not found"
