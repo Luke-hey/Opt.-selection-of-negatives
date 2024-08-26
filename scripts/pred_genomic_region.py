@@ -107,7 +107,7 @@ def calculate_threshold(positive_fasta, model, tokenizer, kmer_length):
             predictions.append(probability)
 
     sorted_predictions = sorted(predictions, reverse=True)
-    threshold_index = int(len(sorted_predictions) * 0.90)
+    threshold_index = int(len(sorted_predictions) * 0.50)
     threshold = sorted_predictions[threshold_index]
     return threshold
 
