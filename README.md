@@ -116,5 +116,5 @@ We tried three distinct approaches to fine-tune the DNABERT model:
   - This will start a queue again
   - Additionally it will produce a plot with the average AUPRC and variance of all the 3 Run directorys
 
-## Referencs
-- 1. Ji, Y., Zhou, Z., Liu, H., & Davuluri, R. V. (2021). DNABERT: Pre-trained Bidirectional Encoder Representations from Transformers for DNA Sequence Data. *Bioinformatics*, 37(15), 2112–2120. [https://doi.org/10.1093/bioinformatics/btab083](https://doi.org/10.1093/bioinformatics/btab083)
+## References
+- Ji, Y., Zhou, Z., Liu, H., & Davuluri, R. V. (2021). DNABERT: Pre-trained Bidirectional Encoder Representations from Transformers for DNA Sequence Data. *Bioinformatics*, 37(15), 2112–2120. [https://doi.org/10.1093/bioinformatics/btab083](https://doi.org/10.1093/bioinformatics/btab083)
