@@ -23,8 +23,8 @@ We tried three distinct approaches to fine-tune the DNABERT model:
 2. **Imbalanced Ratio (1:3):**
    - Here, we experimented with an imbalanced ratio of 1:3, introducing three times as many negative sequences compared to positive ones during the fine-tuning stage.
 
-3. **Selective Similar Negatives (1:1):**
-   - This approach involved maintaining a 1:1 ratio but selecting negative sequences that were particularly similar to positive sequences. The goal was to observe the model's performance when dealing with closely related negatives.
+3. **Shuffled Negatives (1:1):**
+   - This approach involved maintaining a 1:1 ratio but selecting negative sequences that were particularly similar to positive sequences by dinucletoid shuffling the positive sequences. The goal was to observe the model's performance when dealing with very similar negatives.
 
 ## Installation
 
