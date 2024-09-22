@@ -33,6 +33,7 @@ def pred_proba(seq, model, tokenizer, kmer_length):
         inputs = tokenizer(kmer(seq, K=kmer_length), return_tensors="pt").to(device)
         outputs = model(**inputs)
         logits = outputs.logits
+        # could use sigmod instead of softmax here instead (more efficent)
         probabilities = torch.nn.functional.softmax(logits, dim=-1)
         return probabilities[:, 1].item()
 
