@@ -10,7 +10,7 @@ import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # Construct the relative path
 REFERENCE_GENOME = os.path.join(script_dir, "../hg38.fa")
-#REFERENCE_GENOME = "/home/bubu23/hg38.fa"        # add path here
+
 
 def extract_sequences_from_bed(bed_file, output_file):
     bed_file = BedTool(bed_file)
